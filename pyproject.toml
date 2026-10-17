@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "npm-lifecycle-hook-auditor"
+version = "1.0.0"
+description = "Audit npm install hooks for supply-chain malware (stdlib only)"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+
+[project.scripts]
+npm-lifecycle-hook-auditor = "npm_lifecycle_hook_auditor:main"
+
+[tool.setuptools]
+py-modules = ["npm_lifecycle_hook_auditor"]
