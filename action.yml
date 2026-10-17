@@ -1,0 +1,47 @@
+name: "npm Lifecycle Hook Auditor"
+description: >-
+  Audit npm package lifecycle scripts (preinstall/install/postinstall) for install-time malware: obfuscation, exfiltration patterns, Bun-runtime invocation, and Shai-Hulud markers. Fails CI on HIGH/CRITICAL findings. By Ingenious AI.
+author: "Ingenious AI"
+
+branding:
+  icon: "package"
+  color: "red"
+
+inputs:
+  package-json:
+    description: Path to package.json, relative to the repository root.
+    required: false
+    default: "package.json"
+  fail-on:
+    description: >-
+      Comma-separated severities that fail the build (e.g. CRITICAL,HIGH).
+    required: false
+    default: "CRITICAL,HIGH"
+
+outputs:
+  verdict:
+    description: Worst severity found (CRITICAL, HIGH, MEDIUM, LOW, INFO, or NONE).
+    value: ${{ steps.scan.outputs.verdict }}
+  findings-count:
+    description: Number of findings.
+    value: ${{ steps.scan.outputs.findings-count }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Run npm Lifecycle Hook Auditor
+      id: scan
+      shell: bash
+      run: |
+        set -u
+        REPORT="$RUNNER_TEMP/scan-report.json"
+        export FAIL_ON="${{ inputs.fail-on }}"
+        python3 "${{ github.action_path }}/npm_lifecycle_hook_auditor.py" --package-json "${{ github.workspace }}/${{ inputs.package-json }}" --json > "$REPORT" 2> "$RUNNER_TEMP/scan-stderr.txt" || true
+        echo 'CmltcG9ydCBqc29uLCBvcywgc3lzCnNldl9vcmRlciA9IHsiQ1JJVElDQUwiOiAwLCAiSElHSCI6IDEsICJNRURJVU0iOiAyLCAiTE9XIjogMywgIklORk8iOiA0fQpkZWYgd29yc3Rfb2YoZmluZGluZ3MpOgogICAgdyA9ICJOT05FIgogICAgZm9yIGYgaW4gZmluZGluZ3M6CiAgICAgICAgcyA9IGYuZ2V0KCJzZXZlcml0eSIsICJJTkZPIikKICAgICAgICBpZiBzZXZfb3JkZXIuZ2V0KHMsIDkpIDwgc2V2X29yZGVyLmdldCh3LCA5KToKICAgICAgICAgICAgdyA9IHMKICAgIHJldHVybiB3CmZhaWxfb24gPSBzZXQoeC5zdHJpcCgpLnVwcGVyKCkgZm9yIHggaW4gb3MuZW52aXJvbi5nZXQoIkZBSUxfT04iLCAiQ1JJVElDQUwsSElHSCIpLnNwbGl0KCIsIikgaWYgeC5zdHJpcCgpKQoKcmVwb3J0ID0ganNvbi5sb2FkKG9wZW4ob3MucGF0aC5qb2luKG9zLmVudmlyb25bIlJVTk5FUl9URU1QIl0sICJzY2FuLXJlcG9ydC5qc29uIikpKQpmaW5kaW5ncyA9IHJlcG9ydC5nZXQoImZpbmRpbmdzIiwgW10pCnZlcmRpY3QgPSByZXBvcnQuZ2V0KCJ3b3JzdCIsIHdvcnN0X29mKGZpbmRpbmdzKSkKaWYgdmVyZGljdCBub3QgaW4gc2V2X29yZGVyOiB2ZXJkaWN0ID0gd29yc3Rfb2YoZmluZGluZ3MpCgoKc3VtbWFyeV9wYXRoID0gb3MuZW52aXJvbi5nZXQoIkdJVEhVQl9TVEVQX1NVTU1BUlkiLCAiIikKaWYgc3VtbWFyeV9wYXRoOgogICAgd2l0aCBvcGVuKHN1bW1hcnlfcGF0aCwgImEiLCBlbmNvZGluZz0idXRmLTgiKSBhcyBmaDoKICAgICAgICBmaC53cml0ZSgiXG4jIyAiICsgIm5wbSBMaWZlY3ljbGUgSG9vayBBdWRpdG9yIiArICIgc2NhblxuXG4iKQogICAgICAgIGZoLndyaXRlKCJ8IFZlcmRpY3QgfCBGaW5kaW5ncyB8XG58LS0tfC0tLXxcbiIpCiAgICAgICAgZmgud3JpdGUoInwgJXMgfCAlZCB8XG5cbiIgJSAodmVyZGljdCwgbGVuKGZpbmRpbmdzKSkpCgpvdXRfcGF0aCA9IG9zLmVudmlyb24uZ2V0KCJHSVRIVUJfT1VUUFVUIiwgIiIpCmlmIG91dF9wYXRoOgogICAgd2l0aCBvcGVuKG91dF9wYXRoLCAiYSIsIGVuY29kaW5nPSJ1dGYtOCIpIGFzIGZoOgogICAgICAgIGZoLndyaXRlKCJ2ZXJkaWN0PSVzXG4iICUgdmVyZGljdCkKICAgICAgICBmaC53cml0ZSgiZmluZGluZ3MtY291bnQ9JWRcbiIgJSBsZW4oZmluZGluZ3MpKQogICAgICAgIGZoLndyaXRlKCJmYWlsZWQ9JXNcbiIgJSAoInRydWUiIGlmICh2ZXJkaWN0IGluIGZhaWxfb24gYW5kIHZlcmRpY3QgIT0gIk5PTkUiKSBlbHNlICJmYWxzZSIpKQpwcmludCgidmVyZGljdD0lcyBmaW5kaW5ncz0lZCBmYWlsZWQ9JXMiICUgKHZlcmRpY3QsIGxlbihmaW5kaW5ncyksICJ0cnVlIiBpZiAodmVyZGljdCBpbiBmYWlsX29uIGFuZCB2ZXJkaWN0ICE9ICJOT05FIikgZWxzZSAiZmFsc2UiKSkK' | base64 -d > "$RUNNER_TEMP/eval.py"
+        python3 "$RUNNER_TEMP/eval.py"
+    - name: Fail on findings
+      shell: bash
+      if: steps.scan.outputs.failed == 'true'
+      run: |
+        echo "::error::npm Lifecycle Hook Auditor found findings at or above the fail-on threshold."
+        exit 1

@@ -1,5 +1,20 @@
 # npm-lifecycle-hook-auditor
 
+
+## ⚡ GitHub Action
+
+Run it in CI — fails the build on findings at or above your threshold:
+
+```yaml
+- uses: actions/checkout@v4
+- uses: Iceman2050/npm-lifecycle-hook-auditor@v1
+      with:
+        package-json: 'package.json'
+        fail-on: 'CRITICAL,HIGH' # default
+```
+
+Full input reference: [`action.yml`](./action.yml).
+
 **Installing a package should not install a backdoor.**
 
 On October 8, 2026, `tensorlake@0.5.144` was compromised through its npm **preinstall hook**: merely installing the package executed an obfuscated loader through the Bun runtime, harvesting npm, GitHub, AWS, Vault, Kubernetes, and SSH credentials, `.env` files, and crypto wallets — and specifically targeting `.claude`, `.cursor`, `.kiro`, Windsurf, and Zed configs. The malicious commit sat in the repo for 20 hours before the release. `npm audit` checks known vulnerabilities; it never checks what install hooks **do**.
